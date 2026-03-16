@@ -1,8 +1,10 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.Collator;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,9 +29,9 @@ public class OrdenadorArchivos {
         System.out.println("Seleccione orden: (1) Ascendente (2) Descendente");
         boolean ascendente = sc.nextInt() == 1;
 
-        // Rutas definidas por el enunciado
-        String rutaNumeros = System.getProperty("user.home") + "/Documents/numeros.txt";
-        String rutaPersonas = "personas.txt";
+        // Rutas propias, cambiar las rutas al ejecutar el codigo
+        String rutaNumeros = "C:\\Users\\rober\\Documents\\GitHub\\colecciones1\\colecciones1\\Documentos\\numeros.txt";
+        String rutaPersonas = "C:\\Users\\rober\\Documents\\GitHub\\colecciones1\\colecciones1\\src\\personas.txt";
 
         // Ejecución de los procesos de ordenación
         ordenarYGuardarEnteros(rutaNumeros, "SalidaEnteros.txt", ascendente);
@@ -84,19 +86,24 @@ public class OrdenadorArchivos {
     private static void ordenarYGuardarStrings(String origen, String destino, boolean asc) {
         try (Stream<String> lineas = Files.lines(Paths.get(origen))) {
 
+            // Configuramos el comparador para español ya que no ordena bien con acentos el naturalOrder
+            Collator collator = Collator.getInstance(new Locale("es", "ES"));
+            // Establecemos fuerza primaria para que ignore tildes si es necesario
+            collator.setStrength(Collator.PRIMARY);
+
+            Comparator<String> comparador = (s1, s2) -> collator.compare(s1, s2);
+
             List<String> resultado = lineas
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
-                    .sorted(asc ? Comparator.naturalOrder() : Comparator.reverseOrder())
-                    .collect(Collectors.toList());
+                    .sorted(asc ? comparador : comparador.reversed())
+                    .toList();
 
             Files.write(Paths.get(destino), resultado);
-            System.out.println("[OK] Cadenas guardadas con éxito en " + destino);
+            System.out.println("[OK] Cadenas guardadas correctamente en " + destino);
 
         } catch (IOException e) {
-            System.err.println("[Error de Archivo] No se pudo acceder a " + origen + ": " + e.getMessage());
-        } catch (Exception e) {
-            System.err.println("[Error Inesperado] Ocurrió un fallo al procesar las cadenas: " + e.getMessage());
+            System.err.println("[Error] No se pudo procesar el archivo: " + e.getMessage());
         }
     }
 }
