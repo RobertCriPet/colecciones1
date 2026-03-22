@@ -1,6 +1,6 @@
 package Excepciones;
 
-public class FechaInvalidaException extends RuntimeException {
+public class FechaInvalidaException extends GatoException {
     public FechaInvalidaException(String detalle) {
         super("Error en la fecha: " + detalle);
     }
